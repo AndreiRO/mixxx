@@ -554,6 +554,10 @@ class MixxxCore(Feature):
                    "effects/native/moogladder4filtereffect.cpp",
                    "effects/native/reverbeffect.cpp",
                    "effects/native/echoeffect.cpp",
+                   "effects/native/simplereverbeffect.cpp",
+                   "effects/native/simplereverb/filter.cpp",
+                   "effects/native/simplereverb/combfilter.cpp",
+                   "effects/native/simplereverb/allpassfilter.cpp",
                    "effects/native/reverb/Reverb.cc",
 
                    "engine/effects/engineeffectsmanager.cpp",

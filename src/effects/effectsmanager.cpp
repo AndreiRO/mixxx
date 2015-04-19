@@ -245,11 +245,20 @@ void EffectsManager::setupDefaults() {
 #endif
 
     pChain = EffectChainPointer(new EffectChain(
+    		this, "org.mixxx.effectchain.simplereverb"));
+    pChain->setName(tr("SimpleReverb"));
+    pEffect = instantiateEffect("org.mixxx.effects.simplereverb");
+    pChain->addEffect(pEffect);
+    m_pEffectChainManager->addEffectChain(pChain);
+
+    pChain = EffectChainPointer(new EffectChain(
             this, "org.mixxx.effectchain.echo"));
     pChain->setName(tr("Echo"));
     pEffect = instantiateEffect("org.mixxx.effects.echo");
     pChain->addEffect(pEffect);
     m_pEffectChainManager->addEffectChain(pChain);
+
+
 
     // These controls are used inside EQ Effects
     m_pLoEqFreq = new ControlPotmeter(ConfigKey("[Mixer Profile]", "LoEQFrequency"), 0., 22040);
