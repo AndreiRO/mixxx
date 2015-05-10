@@ -9,6 +9,7 @@
 #include "effects/native/graphiceqeffect.h"
 #include "effects/native/filtereffect.h"
 #include "effects/native/moogladder4filtereffect.h"
+#include "effects/native/graphic5bandeqeffect.h"
 #ifndef __MACAPPSTORE__
 #include "effects/native/reverbeffect.h"
 #endif
@@ -16,18 +17,19 @@
 
 NativeBackend::NativeBackend(QObject* pParent)
         : EffectsBackend(pParent, tr("Native")) {
-    // Keep this list in a reasonable order 
+    // Keep this list in a reasonable order
     // Mixing EQs
     registerEffect<Bessel4LVMixEQEffect>();
     registerEffect<Bessel8LVMixEQEffect>();
     registerEffect<LinkwitzRiley8EQEffect>();
-    // Compensations EQs    
+    registerEffect<Graphic5BandEQEffect>();
+    // Compensations EQs
     registerEffect<GraphicEQEffect>();
     // Fading Effcts
     registerEffect<FilterEffect>();
     registerEffect<MoogLadder4FilterEffect>();
     registerEffect<BitCrusherEffect>();
-    // Fancy effects    
+    // Fancy effects
     registerEffect<FlangerEffect>();
     registerEffect<EchoEffect>();
 #ifndef __MACAPPSTORE__

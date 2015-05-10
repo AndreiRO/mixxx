@@ -549,6 +549,7 @@ class MixxxCore(Feature):
                    "effects/native/bessel4lvmixeqeffect.cpp",
                    "effects/native/bessel8lvmixeqeffect.cpp",
                    "effects/native/graphiceqeffect.cpp",
+                   "effects/native/graphic5bandeqeffect.cpp",
                    "effects/native/flangereffect.cpp",
                    "effects/native/filtereffect.cpp",
                    "effects/native/moogladder4filtereffect.cpp",
