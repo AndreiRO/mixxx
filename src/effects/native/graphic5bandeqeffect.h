@@ -21,15 +21,12 @@ class Graphic5BandEQEffectGroupState {
 
     void setFilters(int sampleRate);
 
-    EngineFilterBiquad1LowShelving* m_low;
     QList<EngineFilterBiquad1Peaking*> m_bands;
-    EngineFilterBiquad1HighShelving* m_high;
     QList<CSAMPLE*> m_pBufs;
-    QList<double> m_oldMid;
-    double m_oldLow;
-    double m_oldHigh;
-    float m_centerFrequencies[5];
-    float m_q[5];
+    double m_gain[5];
+    double m_freq[5];
+    double m_q[5];
+
 };
 
 class Graphic5BandEQEffect : public PerChannelEffectProcessor<Graphic5BandEQEffectGroupState> {
@@ -54,15 +51,9 @@ class Graphic5BandEQEffect : public PerChannelEffectProcessor<Graphic5BandEQEffe
         return getId();
     }
 
-    EngineEffectParameter* m_pPotLow;
-    EngineEffectParameter* m_pCenterLow;
-    EngineEffectParameter* m_pQLow;
-    QList<EngineEffectParameter*> m_pPotMid;
-    QList<EngineEffectParameter*> m_pCenterMid;
-    QList<EngineEffectParameter*> m_pQMid;
-    EngineEffectParameter* m_pPotHigh;
-    EngineEffectParameter* m_pCenterHigh;
-    EngineEffectParameter* m_pQHigh;
+    QList<EngineEffectParameter*> m_pGain;
+    QList<EngineEffectParameter*> m_pFreq;
+    QList<EngineEffectParameter*> m_pQ;
     unsigned int m_oldSampleRate;
 
     DISALLOW_COPY_AND_ASSIGN(Graphic5BandEQEffect);

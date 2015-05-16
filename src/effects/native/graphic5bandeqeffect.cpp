@@ -1,4 +1,5 @@
 #include "effects/native/graphic5bandeqeffect.h"
+#include<iostream>
 #include "util/math.h"
 
 #define Q 1.2247449
@@ -8,7 +9,14 @@ QString Graphic5BandEQEffect::getId() {
     return "org.mixxx.effects.graphiceq5band";
 }
 
-// static
+void initialize_values(double gains[], double freq[], double q[]) {
+    for (int i = 0; i < 5; ++ i) {
+        gains[i] = 1;
+        q[i] = 0.5;
+        freq[i] = 1 + i * 400 + 200;
+    }
+}
+
 EffectManifest Graphic5BandEQEffect::getManifest() {
     EffectManifest manifest;
     manifest.setId(getId());
@@ -20,111 +28,60 @@ EffectManifest Graphic5BandEQEffect::getManifest() {
     manifest.setEffectRampsFromDry(true);
     manifest.setIsMasterEQ(true);
 
-    // Display rounded center frequencies for each filter
-    float centerFrequencies[5] = {45, 500, 2500,
-                                  5500, 12000};
-
-    EffectManifestParameter* lowGain = manifest.addParameter();
-    lowGain->setId(QString("low_gain"));
-    lowGain->setName(QString("Low Gain"));
-    lowGain->setDescription(QString("Gain for Low Filter"));
-    lowGain->setControlHint(EffectManifestParameter::CONTROL_KNOB_LINEAR);
-    lowGain->setSemanticHint(EffectManifestParameter::SEMANTIC_UNKNOWN);
-    lowGain->setUnitsHint(EffectManifestParameter::UNITS_UNKNOWN);
-    //lowGain->setNeutralPointOnScale(0.5);
-    lowGain->setDefault(0);
-    lowGain->setMinimum(-12);
-    lowGain->setMaximum(12);
-
-    EffectManifestParameter* lowFreq = manifest.addParameter();
-    lowFreq->setId(QString("low_freq"));
-    lowFreq->setName(QString("Low Freq"));
-    lowFreq->setDescription(QString("Frequency corner for Low Filter"));
-    lowFreq->setControlHint(EffectManifestParameter::CONTROL_KNOB_LINEAR);
-    lowFreq->setSemanticHint(EffectManifestParameter::SEMANTIC_UNKNOWN);
-    lowFreq->setUnitsHint(EffectManifestParameter::UNITS_UNKNOWN);
-    lowFreq->setDefault(centerFrequencies[0]);
-    lowFreq->setMinimum(20);
-    lowFreq->setMaximum(250);
-
-    EffectManifestParameter* lowQ = manifest.addParameter();
-    lowQ->setId(QString("low_Q"));
-    lowQ->setName(QString("Low q"));
-    lowQ->setDescription(QString("Q factor for Low Filter"));
-    lowQ->setControlHint(EffectManifestParameter::CONTROL_KNOB_LINEAR);
-    lowQ->setSemanticHint(EffectManifestParameter::SEMANTIC_UNKNOWN);
-    lowQ->setUnitsHint(EffectManifestParameter::UNITS_UNKNOWN);
-    lowQ->setDefault(Q);
-    lowQ->setMinimum(Q + 100);
-    lowQ->setMaximum(Q - 100);
-#if 0
     QString paramName;
-    for (int i = 0; i < 3; i++) {
-        if (centerFrequencies[i + 1] < 1000) {
-            paramName = QString("%1 Hz").arg(centerFrequencies[i + 1]);
-        } else {
-            paramName = QString("%1 kHz").arg(centerFrequencies[i + 1] / 1000);
-        }
+    for (int i = 0; i < 5; i++) {
+        paramName = QString("Gain: %1").arg(i + 1);
+        EffectManifestParameter* gain = manifest.addParameter();
+        gain->setId(QString("gain_%1").arg(i));
+        gain->setName(paramName);
+        gain->setDescription(QString("Gain for Band Filter %1").arg(i));
+        gain->setControlHint(EffectManifestParameter::CONTROL_KNOB_LINEAR);
+        gain->setSemanticHint(EffectManifestParameter::SEMANTIC_UNKNOWN);
+        gain->setUnitsHint(EffectManifestParameter::UNITS_UNKNOWN);
+        gain->setDefault(0.5);
+        gain->setMinimum(0.1);
+        gain->setMaximum(1);
 
-        EffectManifestParameter* mid = manifest.addParameter();
-        mid->setId(QString("mid%1").arg(i));
-        mid->setName(paramName);
-        mid->setDescription(QString("Gain for Band Filter %1").arg(i));
-        mid->setControlHint(EffectManifestParameter::CONTROL_KNOB_LINEAR);
-        mid->setSemanticHint(EffectManifestParameter::SEMANTIC_UNKNOWN);
-        mid->setUnitsHint(EffectManifestParameter::UNITS_UNKNOWN);
-        mid->setNeutralPointOnScale(0.5);
-        mid->setDefault(0);
-        mid->setMinimum(-12);
-        mid->setMaximum(12);
+        paramName = QString("Freq: %1").arg(i + 1);
+        EffectManifestParameter* freq = manifest.addParameter();
+        freq->setId(QString("freq_%1").arg(i));
+        freq->setName(paramName);
+        freq->setDescription(QString("Freq for Band Filter %1").arg(i));
+        freq->setControlHint(EffectManifestParameter::CONTROL_KNOB_LINEAR);
+        freq->setSemanticHint(EffectManifestParameter::SEMANTIC_UNKNOWN);
+        freq->setUnitsHint(EffectManifestParameter::UNITS_UNKNOWN);
+        freq->setDefault((i) * 400 + 200);
+        freq->setMinimum(1 + i * 400);
+        freq->setMaximum((i + 1) * 400);
+
+        paramName = QString("Q: %1").arg(i + 1);
+        EffectManifestParameter* q = manifest.addParameter();
+        q->setId(QString("q_%1").arg(i));
+        q->setName(paramName);
+        q->setDescription(QString("Q Factor for Band Filter %1").arg(i));
+        q->setControlHint(EffectManifestParameter::CONTROL_KNOB_LINEAR);
+        q->setSemanticHint(EffectManifestParameter::SEMANTIC_UNKNOWN);
+        q->setUnitsHint(EffectManifestParameter::UNITS_UNKNOWN);
+        q->setDefault(0.5);
+        q->setMinimum(0);
+        q->setMaximum(1);
     }
 
-    EffectManifestParameter* high = manifest.addParameter();
-    high->setId(QString("high"));
-    high->setName(QString("%1 kHz").arg(centerFrequencies[7] / 1000));
-    high->setDescription(QString("Gain for High Filter"));
-    high->setControlHint(EffectManifestParameter::CONTROL_KNOB_LINEAR);
-    high->setSemanticHint(EffectManifestParameter::SEMANTIC_UNKNOWN);
-    high->setUnitsHint(EffectManifestParameter::UNITS_UNKNOWN);
-    high->setDefault(0);
-    high->setMinimum(-12);
-    high->setMaximum(12);
-#endif
     return manifest;
 }
 
 Graphic5BandEQEffectGroupState::Graphic5BandEQEffectGroupState() {
-    m_oldLow = 0;
-    for (int i = 0; i < 6; i++) {
-        m_oldMid.append(1.0);
-    }
-    m_oldHigh = 0;
-
-    m_pBufs.append(SampleUtil::alloc(MAX_BUFFER_LEN));
-    m_pBufs.append(SampleUtil::alloc(MAX_BUFFER_LEN));
-
-    // Initialize the default center frequencies
-    m_centerFrequencies[0] = 81;
-    m_centerFrequencies[1] = 494;
-    m_centerFrequencies[2] = 1097;
-    m_centerFrequencies[3] = 5416;
-    m_centerFrequencies[4] = 9828;
-
-    // Initialize qs
-    m_q[0] = Q;
-    m_q[1] = Q;
-    m_q[2] = Q;
-    m_q[3] = Q;
-    m_q[4] = Q;
-
     // Initialize the filters with default parameters
-    m_low = new EngineFilterBiquad1LowShelving(44100, m_centerFrequencies[0], m_q[0]);
-    m_high = new EngineFilterBiquad1HighShelving(44100, m_centerFrequencies[4], m_q[4]);
-    for (int i = 1; i < 4; i++) {
+    initialize_values(m_gain, m_freq, m_q);
+
+    for (int i = 0; i < 5; i++) {
         m_bands.append(new EngineFilterBiquad1Peaking(44100,
-                                                      m_centerFrequencies[i],
-                                                      m_q[i]));
+                                                      i * 400 + 200,
+                                                      0.5));
+        m_pBufs.append(SampleUtil::alloc(MAX_BUFFER_LEN));
+        m_pBufs.append(SampleUtil::alloc(MAX_BUFFER_LEN));
     }
+
 }
 
 Graphic5BandEQEffectGroupState::~Graphic5BandEQEffectGroupState() {
@@ -132,40 +89,26 @@ Graphic5BandEQEffectGroupState::~Graphic5BandEQEffectGroupState() {
         delete filter;
     }
 
-    delete m_low;
-    delete m_high;
-
     foreach(CSAMPLE* buf, m_pBufs) {
         SampleUtil::free(buf);
     }
 }
 
 void Graphic5BandEQEffectGroupState::setFilters(int sampleRate) {
-    m_low->setFrequencyCorners(sampleRate, m_centerFrequencies[0], m_q[0],
-                               m_oldLow);
-#if 0
-    m_high->setFrequencyCorners(sampleRate, m_centerFrequencies[4], m_q[4],
-                                m_oldHigh);
-    for (int i = 0; i < 3 i++) {
-        m_bands[i]->setFrequencyCorners(sampleRate, m_centerFrequencies[i + 1],
-                                        Q, m_oldMid[i]);
+    for (int i = 0; i < 5; i++) {
+        m_bands[i]->setFrequencyCorners(sampleRate, m_freq[i], m_q[i], m_gain[i]);
     }
-#endif
 }
 
 Graphic5BandEQEffect::Graphic5BandEQEffect(EngineEffect* pEffect,
                                  const EffectManifest& manifest)
         : m_oldSampleRate(44100) {
     Q_UNUSED(manifest);
-    m_pPotLow = pEffect->getParameterById("low_gain");
-    m_pCenterLow = pEffect->getParameterById("low_freq");
-    m_pQLow = pEffect->getParameterById("low_Q");
-#if 0
-    for (int i = 0; i < 4; i++) {
-        m_pPotMid.append(pEffect->getParameterById(QString("mid%1").arg(i)));
+    for (int i = 0; i < 5; i++) {
+        m_pGain.append(pEffect->getParameterById(QString("gain_%1").arg(i)));
+        m_pFreq.append(pEffect->getParameterById(QString("freq_%1").arg(i)));
+        m_pQ.append(pEffect->getParameterById(QString("q_%1").arg(i)));
     }
-    m_pPotHigh = pEffect->getParameterById("high");
-#endif
 }
 
 Graphic5BandEQEffect::~Graphic5BandEQEffect() {
@@ -188,93 +131,62 @@ void Graphic5BandEQEffect::processChannel(const ChannelHandle& handle,
         pState->setFilters(sampleRate);
     }
 
-    float fLow;
-    float fMid[3];
-    float fHigh;
+    double newGain[5];
+    double newFreq[5];
+    double newQ[5];
+    bool toProcess[] = {false, false, false, false, false};
 
     if (enableState == EffectProcessor::DISABLING) {
          // Ramp to dry, when disabling, this will ramp from dry when enabling as well
-        fLow = 1.0;
-        pState->m_centerFrequencies[0] = 40;
-        pState->m_q[0] = Q;
-        fHigh = 1.0;
-        for (int i = 0; i < 3; i++) {
-            fMid[i] = 1.0;
-        }
+        initialize_values(newGain, newFreq, newQ);
     } else {
-        fLow = m_pPotLow->value();
-        pState->m_centerFrequencies[0] = m_pCenterLow->value();
-        pState->m_q[0] = m_pQLow->value();
-    //    fHigh = m_pPotHigh->value();
-        for (int i = 0; i < 3; i++) {
-      //      fMid[i] = m_pPotMid[i]->value();
+        for (int i = 0; i < 5; i++) {
+            qDebug() << newGain[i] <<' ' << pState->m_gain[i] << '\n';
+            newGain[i] = m_pGain[i]->value();
+            newFreq[i] = m_pFreq[i]->value();
+            newQ[i] = m_pQ[i]->value();
         }
     }
 
 
-    if (fLow != pState->m_oldLow) {
-        pState->m_low->setFrequencyCorners(sampleRate,
-                                           pState->m_centerFrequencies[0], Q,
-                                           fLow);
-    }
-#if 0
-    if (fHigh != pState->m_oldHigh) {
-        pState->m_high->setFrequencyCorners(sampleRate,
-                                            pState->m_centerFrequencies[7], Q,
-                                            fHigh);
-    }
-    for (int i = 0; i < 6; i++) {
-        if (fMid[i] != pState->m_oldMid[i]) {
-            pState->m_bands[i]->setFrequencyCorners(sampleRate,
-                                                    pState->m_centerFrequencies[i + 1],
-                                                    Q, fMid[i]);
+    for (int i = 0; i < 5; ++ i) {
+        if (newGain[i] != pState->m_gain[i] ||
+            newFreq[i] != pState->m_freq[i] ||
+            newQ[i] != pState->m_q[i]) {
+                toProcess[i] = true;
+                pState->m_bands[i]->setFrequencyCorners(
+                                                    sampleRate,
+                                                    newGain[i],
+                                                    newFreq[i],
+                                                    newQ[i]
+            );
         }
     }
-#endif
+    SampleUtil::copy(pState->m_pBufs[0], pInput, numSamples);
+
     int bufIndex = 0;
-    if (fLow) {
-        pState->m_low->process(pInput, pState->m_pBufs[1 - bufIndex], numSamples);
-        bufIndex = 1 - bufIndex;
-    } else {
-        pState->m_low->pauseFilter();
-        SampleUtil::copy(pState->m_pBufs[bufIndex], pInput, numSamples);
-    }
-#if 0
-    for (int i = 0; i < 6; i++) {
-        if (fMid[i]) {
-            pState->m_bands[i]->process(pState->m_pBufs[bufIndex],
-                                        pState->m_pBufs[1 - bufIndex], numSamples);
+    for (int i = 0; i < 4; ++ i) {
+       if (toProcess[i]) {
+            pState->m_bands[i]->process(pState->m_pBufs[bufIndex], pState->m_pBufs[1 - bufIndex], numSamples);
             bufIndex = 1 - bufIndex;
         } else {
             pState->m_bands[i]->pauseFilter();
         }
     }
 
-#endif
-    fHigh = 0.0;
-    if (fHigh) {
-        pState->m_high->process(pState->m_pBufs[bufIndex],
-                                pOutput, numSamples);
-        bufIndex = 1 - bufIndex;
+    if (toProcess[4]) {
+        pState->m_bands[4]->process(pState->m_pBufs[bufIndex], pOutput, numSamples);
     } else {
+        pState->m_bands[4]->pauseFilter();
         SampleUtil::copy(pOutput, pState->m_pBufs[bufIndex], numSamples);
-        pState->m_high->pauseFilter();
     }
 
-    pState->m_oldLow = fLow;
-#if 0
-    pState->m_oldHigh = fHigh;
-    for (int i = 0; i < 6; i++) {
-        pState->m_oldMid[i] = fMid[i];
-    }
-#endif
-    if (enableState == EffectProcessor::DISABLING) {
-        pState->m_low->pauseFilter();
-#if 0
-        pState->m_high->pauseFilter();
-        for (int i = 0; i < 6; i++) {
-            pState->m_bands[i]->pauseFilter();
-        }
-#endif
+    /* copy old values */
+    for (int i = 0; i < 5; ++ i) {
+        qDebug() << "Copying\n";
+        pState->m_gain[i] = newGain[i];
+        pState->m_freq[i] = newFreq[i];
+        pState->m_q[i] = newQ[i];
+        qDebug() << pState->m_gain[i] << ' ' << newGain[i] << "test\n";
     }
 }
